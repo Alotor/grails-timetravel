@@ -2,8 +2,8 @@ package test
 
 import grails.plugin.spock.IntegrationSpec
 
-import net.kaleidos.timetravel.TimeTravel
 import java.util.Calendar
+import org.grails.plugins.timetravel.TimeTravel
 
 class TestDomainServiceIntegrationSpec extends IntegrationSpec {
     def testDomainService
@@ -14,12 +14,17 @@ class TestDomainServiceIntegrationSpec extends IntegrationSpec {
             def curYear = calendar.get(Calendar.YEAR)
 
         when:
+            def result = null
             use(TimeTravel) {
-                travel 10.years.ago
-                def result = testDomainService.insertDomainObject(name, value)
+                def past = 10.years.ago
+                testDomainService.insertDomainObject(name, value)
+
+                def domain = TestDomain.findByName(name)
+                domain.dateCreated = past
+                domain.lastUpdated = past
+                domain.save(flush: true)
             }
-
-
+            result = TestDomain.findByName(name)
 
         then:
             result != null

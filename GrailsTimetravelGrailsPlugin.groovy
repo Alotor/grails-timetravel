@@ -1,3 +1,10 @@
+import org.codehaus.groovy.grails.orm.hibernate.support.ClosureEventTriggeringInterceptor
+import org.codehaus.groovy.grails.orm.hibernate.HibernateDatastore
+import org.codehaus.groovy.grails.orm.hibernate.EventTriggeringInterceptor
+import org.codehaus.groovy.grails.orm.hibernate.support.ClosureEventListener
+import org.codehaus.groovy.grails.orm.hibernate.support.SoftKey
+import org.grails.plugins.timetravel.listener.TimetravelClosureEventListener
+
 class GrailsTimetravelGrailsPlugin {
     // the plugin version
     def version = "0.1"
@@ -52,6 +59,42 @@ Brief summary/description of the plugin.
 
     def doWithApplicationContext = { applicationContext ->
         // TODO Implement post initialization spring config (optional)
+        def grailsApplication = applicationContext.getBean("grailsApplication")
+
+        grailsApplication.domainClasses.each {
+            def domainClazz = it.clazz
+
+            ClosureEventTriggeringInterceptor eventTriggeringInterceptor = applicationContext.getBean("eventTriggeringInterceptor")
+            HibernateDatastore datastore = eventTriggeringInterceptor.datastores.values().iterator().next()
+            EventTriggeringInterceptor interceptor = datastore.getEventTriggeringInterceptor()
+
+            interceptor.eventListeners.clear()
+            def key = new SoftKey(domainClazz)
+            def eventListener = new TimetravelClosureEventListener(domainClazz, true, [])
+            interceptor.eventListeners.put(key, eventListener)
+            //ClosureEventListener listener = interceptor.findEventListener(domainClazz.newInstance())
+
+            /*
+            domainClazz.metaClass.static.disableTimestamping = {
+                // Mapping m = GrailsDomainBinder.getMapping(domainClazz)
+                // m.autoTimestamp = false
+                listener.shouldTimestamp = false
+            }
+            domainClazz.metaClass.static.enableTimestamping = {
+                // Mapping m = GrailsDomainBinder.getMapping(domainClazz);
+                // m.autoTimestamp = true
+                listener.shouldTimestamp = true
+            }
+            domainClazz.metaClass.static.doWithoutTimestamping = { Closure closure ->
+                // Mapping m = GrailsDomainBinder.getMapping(domainClazz);
+                // m.autoTimestamp = false
+                listener.shouldTimestamp = false
+                closure.call()
+                listener.shouldTimestamp = true
+                // m.autoTimestamp = true
+            }
+            */
+        }
     }
 
     def onChange = { event ->
