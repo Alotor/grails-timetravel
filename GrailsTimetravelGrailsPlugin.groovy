@@ -3,7 +3,7 @@ import org.codehaus.groovy.grails.orm.hibernate.HibernateDatastore
 import org.codehaus.groovy.grails.orm.hibernate.EventTriggeringInterceptor
 import org.codehaus.groovy.grails.orm.hibernate.support.ClosureEventListener
 import org.codehaus.groovy.grails.orm.hibernate.support.SoftKey
-import org.grails.plugins.timetravel.listener.TimetravelClosureEventListener
+import org.codehaus.groovy.grails.orm.hibernate.support.TimetravelClosureEventListener
 
 class GrailsTimetravelGrailsPlugin {
     // the plugin version

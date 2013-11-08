@@ -4,9 +4,15 @@ import grails.plugin.spock.IntegrationSpec
 
 import java.util.Calendar
 import org.grails.plugins.timetravel.TimeTravel
+import groovy.time.TimeCategory
 
+@Mixin(TimeTravel)
 class TestDomainServiceIntegrationSpec extends IntegrationSpec {
     def testDomainService
+
+    def setupSpec() {
+        Integer.mixin(TimeCategory)
+    }
 
     void 'Test save domain object'() {
         setup:
@@ -14,17 +20,10 @@ class TestDomainServiceIntegrationSpec extends IntegrationSpec {
             def curYear = calendar.get(Calendar.YEAR)
 
         when:
-            def result = null
-            use(TimeTravel) {
-                def past = 10.years.ago
+            travel(10.years.ago) {
                 testDomainService.insertDomainObject(name, value)
-
-                def domain = TestDomain.findByName(name)
-                domain.dateCreated = past
-                domain.lastUpdated = past
-                domain.save(flush: true)
             }
-            result = TestDomain.findByName(name)
+            def result = TestDomain.findByName(name)
 
         then:
             result != null
