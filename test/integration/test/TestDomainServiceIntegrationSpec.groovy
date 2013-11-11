@@ -36,4 +36,32 @@ class TestDomainServiceIntegrationSpec extends IntegrationSpec {
             name = "test"
             value = 10
     }
+
+    void 'Test update domain object'() {
+        setup:
+            def calendar = Calendar.getInstance()
+            def curYear = calendar.get(Calendar.YEAR)
+
+            travel(10.years.ago) {
+                testDomainService.insertDomainObject(name, value1)
+            }
+
+        when:
+            travel(5.years.ago) {
+                testDomainService.updateDomainObject(name, value2)
+            }
+            def result = TestDomain.findByName(name)
+
+        then:
+            result != null
+            result.dateCreated != null
+            result.dateCreated.year == curYear -1900 -10
+            result.lastUpdated != null
+            result.lastUpdated.year == curYear -1900 -5
+
+        where:
+            name = "test"
+            value1 = 10
+            value2 = 5
+    }
 }

@@ -1,7 +1,9 @@
 package org.grails.plugins.timetravel
 
+import org.grails.plugins.timetravel.TimeTravel
+
 class TimeTravel {
-    static _holder
+    public static TimeHolder _holder = null
 
     def travel(Date dateToTravel, Closure closure) {
         System.out.println ("Traveling: " + dateToTravel);
