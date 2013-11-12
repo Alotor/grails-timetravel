@@ -4,6 +4,7 @@ import org.codehaus.groovy.grails.orm.hibernate.EventTriggeringInterceptor
 import org.codehaus.groovy.grails.orm.hibernate.support.ClosureEventListener
 import org.codehaus.groovy.grails.orm.hibernate.support.SoftKey
 import org.codehaus.groovy.grails.orm.hibernate.support.TimetravelClosureEventListener
+import org.grails.plugins.timetravel.TimeTravel
 
 class GrailsTimetravelGrailsPlugin {
     // the plugin version
@@ -72,6 +73,25 @@ Brief summary/description of the plugin.
             def key = new SoftKey(domainClazz)
             def eventListener = new TimetravelClosureEventListener(domainClazz, true, [])
             interceptor.eventListeners.put(key, eventListener)
+
+            def saveMethod1 = it.metaClass.pickMethod("save", [] as Class[])
+            it.metaClass.save = {
+                TimeTravel.add(delegate)
+                saveMethod1.invoke(delegate, [] as Object[])
+            }
+
+            def saveMethod2 = it.metaClass.pickMethod("save", [Map] as Class[])
+            it.metaClass.save = { Map params ->
+                TimeTravel.add(delegate)
+                saveMethod2.invoke(delegate, [params] as Object[])
+            }
+
+            def saveMethod3 = it.metaClass.pickMethod("save", [Boolean] as Class[])
+            it.metaClass.save = { Boolean params ->
+                TimeTravel.add(delegate)
+                saveMethod3.invoke(delegate, [params] as Object[])
+            }
+
             //ClosureEventListener listener = interceptor.findEventListener(domainClazz.newInstance())
 
             /*

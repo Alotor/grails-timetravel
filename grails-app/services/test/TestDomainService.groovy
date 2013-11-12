@@ -11,6 +11,6 @@ class TestDomainService {
     public updateDomainObject(String name, Integer value) {
         def domain = TestDomain.findByName(name)
         domain.value = value
-        domain.save(flush:true)
+        domain.save()
     }
 }

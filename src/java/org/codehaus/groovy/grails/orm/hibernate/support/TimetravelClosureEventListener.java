@@ -47,14 +47,7 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
     private static final Log log = LogFactory.getLog(TimetravelClosureEventListener.class);
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[] {};
 
-    EventTriggerCaller saveOrUpdateCaller;
     EventTriggerCaller beforeInsertCaller;
-    EventTriggerCaller preLoadEventCaller;
-    EventTriggerCaller postLoadEventListener;
-    EventTriggerCaller postInsertEventListener;
-    EventTriggerCaller postUpdateEventListener;
-    EventTriggerCaller postDeleteEventListener;
-    EventTriggerCaller preDeleteEventListener;
     EventTriggerCaller preUpdateEventListener;
 
     private BeforeValidateHelper beforeValidateHelper = new BeforeValidateHelper();
@@ -80,17 +73,7 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
             shouldTimestamp = m == null || m.isAutoTimestamp();
         }
 
-        saveOrUpdateCaller = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.ONLOAD_SAVE);
         beforeInsertCaller = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.BEFORE_INSERT_EVENT);
-        preLoadEventCaller = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.ONLOAD_EVENT);
-        if (preLoadEventCaller == null) {
-            preLoadEventCaller = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.BEFORE_LOAD_EVENT);
-        }
-        postLoadEventListener = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.AFTER_LOAD_EVENT);
-        postInsertEventListener = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.AFTER_INSERT_EVENT);
-        postUpdateEventListener = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.AFTER_UPDATE_EVENT);
-        postDeleteEventListener = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.AFTER_DELETE_EVENT);
-        preDeleteEventListener = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.BEFORE_DELETE_EVENT);
         preUpdateEventListener = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.BEFORE_UPDATE_EVENT);
 
         if (failOnErrorPackages.size() > 0) {
@@ -107,139 +90,8 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
         validateMethod = domainMetaClass.getMetaMethod(ValidatePersistentMethod.METHOD_SIGNATURE, new Object[] { Map.class });
     }
 
-    private EventTriggerCaller buildCaller(Class<?> domainClazz, String event) {
-        Method method = ReflectionUtils.findMethod(domainClazz, event);
-        if (method != null) {
-            ReflectionUtils.makeAccessible(method);
-            return new MethodCaller(method);
-        }
 
-        Field field = ReflectionUtils.findField(domainClazz, event);
-        if (field != null) {
-            ReflectionUtils.makeAccessible(field);
-            return new FieldClosureCaller(field);
-        }
-
-        MetaMethod metaMethod = domainMetaClass.getMetaMethod(event, EMPTY_OBJECT_ARRAY);
-        if (metaMethod != null) {
-            return new MetaMethodCaller(metaMethod);
-        }
-
-        MetaProperty metaProperty = domainMetaClass.getMetaProperty(event);
-        if (metaProperty != null) {
-            return new MetaPropertyClosureCaller(metaProperty);
-        }
-
-        return null;
-    }
-
-    public void onSaveOrUpdate(SaveOrUpdateEvent event) throws HibernateException {
-        // no-op, merely a hook for plugins to override
-    }
-
-    private void synchronizePersisterState(Object entity, EntityPersister persister, Object[] state) {
-        String[] propertyNames = persister.getPropertyNames();
-        for (int i = 0; i < propertyNames.length; i++) {
-            String p = propertyNames[i];
-            MetaProperty metaProperty = domainMetaClass.getMetaProperty(p);
-            if (ClosureEventTriggeringInterceptor.IGNORED.contains(p) || metaProperty == null) {
-                continue;
-            }
-            Object value = metaProperty.getProperty(entity);
-            state[i] = value;
-            persister.setPropertyValue(entity, i, value, EntityMode.POJO);
-        }
-    }
-
-    public void onPreLoad(final PreLoadEvent event) {
-        if (preLoadEventCaller == null) {
-            return;
-        }
-
-        doWithManualSession(event, new Closure(this) {
-            @Override
-            public Object call() {
-                preLoadEventCaller.call(event.getEntity());
-                return null;
-            }
-        });
-    }
-
-    public void onPostLoad(final PostLoadEvent event) {
-        if (postLoadEventListener == null) {
-            return;
-        }
-
-       doWithManualSession(event, new Closure(this) {
-            @Override
-            public Object call() {
-                postLoadEventListener.call(event.getEntity());
-                return null;
-            }
-        });
-    }
-
-    public void onPostInsert(PostInsertEvent event) {
-        final Object entity = event.getEntity();
-        AbstractSavePersistentMethod.clearDisabledValidations(entity);
-        if (postInsertEventListener == null) {
-            return;
-        }
-
-        doWithManualSession(event, new Closure(this) {
-            @Override
-            public Object call() {
-                postInsertEventListener.call(entity);
-                return null;
-            }
-        });
-    }
-
-    public void onPostUpdate(PostUpdateEvent event) {
-        final Object entity = event.getEntity();
-        AbstractSavePersistentMethod.clearDisabledValidations(entity);
-        if (postUpdateEventListener == null) {
-            return;
-        }
-
-        doWithManualSession(event, new Closure(this) {
-            @Override
-            public Object call() {
-                postUpdateEventListener.call(entity);
-                return null;
-            }
-        });
-    }
-
-    public void onPostDelete(PostDeleteEvent event) {
-        final Object entity = event.getEntity();
-        AbstractSavePersistentMethod.clearDisabledValidations(entity);
-        if (postDeleteEventListener == null) {
-            return;
-        }
-
-        doWithManualSession(event, new Closure(this) {
-            @Override
-            public Object call() {
-                postDeleteEventListener.call(entity);
-                return null;
-            }
-        });
-    }
-
-    public boolean onPreDelete(final PreDeleteEvent event) {
-        if (preDeleteEventListener == null) {
-            return false;
-        }
-
-        return doWithManualSession(event, new Closure<Boolean>(this) {
-            @Override
-            public Boolean call() {
-                return preDeleteEventListener.call(event.getEntity());
-            }
-        });
-    }
-
+    @Override
     public boolean onPreUpdate(final PreUpdateEvent event) {
         return doWithManualSession(event, new Closure<Boolean>(this) {
             @Override
@@ -253,17 +105,8 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
                 if (lastUpdatedProperty != null && shouldTimestamp) {
                     long time = System.currentTimeMillis();
 
-                    try {
-                        if (TimeTravel._holder != null) {
-                            Date travel = TimeTravel._holder.get();
-                            if (travel != null) {
-                                time = travel.getTime();
-                            } else {
-                            }
-                        }
-                                System.out.println("NO TRAVEL");
-                    } catch(Exception e) {
-                        e.printStackTrace();
+                    if (TimeTravel.get(entity) != null) {
+                        time = ((Date)TimeTravel.get(entity)).getTime();
                     }
 
                     Object now = DefaultGroovyMethods.newInstance(lastUpdatedProperty.getType(), new Object[] { time });
@@ -285,17 +128,7 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
         });
     }
 
-    private <T> T doWithManualSession(AbstractEvent event, Closure<T> callable) {
-        Session session = event.getSession();
-        FlushMode current = session.getFlushMode();
-        try {
-           session.setFlushMode(FlushMode.MANUAL);
-           return callable.call();
-        } finally {
-            session.setFlushMode(current);
-        }
-    }
-
+    @Override
     public boolean onPreInsert(final PreInsertEvent event) {
         return doWithManualSession(event, new Closure<Boolean>(this) {
             @Override
@@ -310,8 +143,8 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
                 }
                 if (shouldTimestamp) {
                     long time = System.currentTimeMillis();
-                    if (TimeTravel._holder.get() != null) {
-                        time = TimeTravel._holder.get().getTime();
+                    if (TimeTravel.get(entity) != null) {
+                        time = ((Date)TimeTravel.get(entity)).getTime();
                     }
 
                     if (dateCreatedProperty != null) {
@@ -346,9 +179,55 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
         });
     }
 
-    public void onValidate(ValidationEvent event) {
-        beforeValidateHelper.invokeBeforeValidate(
-                event.getEntityObject(), event.getValidatedFields());
+    private EventTriggerCaller buildCaller(Class<?> domainClazz, String event) {
+        Method method = ReflectionUtils.findMethod(domainClazz, event);
+        if (method != null) {
+            ReflectionUtils.makeAccessible(method);
+            return new MethodCaller(method);
+        }
+
+        Field field = ReflectionUtils.findField(domainClazz, event);
+        if (field != null) {
+            ReflectionUtils.makeAccessible(field);
+            return new FieldClosureCaller(field);
+        }
+
+        MetaMethod metaMethod = domainMetaClass.getMetaMethod(event, EMPTY_OBJECT_ARRAY);
+        if (metaMethod != null) {
+            return new MetaMethodCaller(metaMethod);
+        }
+
+        MetaProperty metaProperty = domainMetaClass.getMetaProperty(event);
+        if (metaProperty != null) {
+            return new MetaPropertyClosureCaller(metaProperty);
+        }
+
+        return null;
+    }
+
+    private void synchronizePersisterState(Object entity, EntityPersister persister, Object[] state) {
+        String[] propertyNames = persister.getPropertyNames();
+        for (int i = 0; i < propertyNames.length; i++) {
+            String p = propertyNames[i];
+            MetaProperty metaProperty = domainMetaClass.getMetaProperty(p);
+            if (ClosureEventTriggeringInterceptor.IGNORED.contains(p) || metaProperty == null) {
+                continue;
+            }
+            Object value = metaProperty.getProperty(entity);
+            state[i] = value;
+            persister.setPropertyValue(entity, i, value, EntityMode.POJO);
+        }
+    }
+
+    private <T> T doWithManualSession(AbstractEvent event, Closure<T> callable) {
+        Session session = event.getSession();
+        FlushMode current = session.getFlushMode();
+        try {
+           session.setFlushMode(FlushMode.MANUAL);
+           return callable.call();
+        } finally {
+            session.setFlushMode(current);
+        }
     }
 
     private static abstract class EventTriggerCaller {
