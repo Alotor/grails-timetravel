@@ -15,10 +15,6 @@ class TestDomainServiceIntegrationSpec extends IntegrationSpec {
     }
 
     void 'Test save domain object'() {
-        setup:
-            def calendar = Calendar.getInstance()
-            def curYear = calendar.get(Calendar.YEAR)
-
         when:
             travel(10.years.ago) {
                 testDomainService.insertDomainObject(name, value)
@@ -28,9 +24,9 @@ class TestDomainServiceIntegrationSpec extends IntegrationSpec {
         then:
             result != null
             result.dateCreated != null
-            result.dateCreated.year == curYear -1900 -10
+            result.dateCreated.year == 10.years.ago.year
             result.lastUpdated != null
-            result.lastUpdated.year == curYear -1900 -10
+            result.lastUpdated.year == 10.years.ago.year
 
         where:
             name = "test"
@@ -39,9 +35,6 @@ class TestDomainServiceIntegrationSpec extends IntegrationSpec {
 
     void 'Test update domain object'() {
         setup:
-            def calendar = Calendar.getInstance()
-            def curYear = calendar.get(Calendar.YEAR)
-
             travel(10.years.ago) {
                 testDomainService.insertDomainObject(name, value1)
             }
@@ -55,9 +48,9 @@ class TestDomainServiceIntegrationSpec extends IntegrationSpec {
         then:
             result != null
             result.dateCreated != null
-            result.dateCreated.year == curYear -1900 -10
+            result.dateCreated.year == 10.years.ago.year
             result.lastUpdated != null
-            result.lastUpdated.year == curYear -1900 -5
+            result.lastUpdated.year == 5.years.ago.year
 
         where:
             name = "test"
