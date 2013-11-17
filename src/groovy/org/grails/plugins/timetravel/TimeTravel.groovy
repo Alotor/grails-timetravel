@@ -1,26 +1,26 @@
 package org.grails.plugins.timetravel
 
-import org.grails.plugins.timetravel.TimeTravel
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
 import grails.util.Environment
 
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
+
 class TimeTravel {
-    private static final Log log = LogFactory.getLog(TimeTravel.class);
+    private static final Log log = LogFactory.getLog(this)
 
     public static Map properties = Collections.synchronizedMap([:])
-    public static TimeHolder _holder = null
+    public static TimeHolder _holder
 
     def travel(Date dateToTravel, Closure closure) {
         if (Environment.getCurrent() != Environment.TEST) {
             throw new Exception("You can only use time-travel on a testing environment")
         }
 
-        log.debug("Traveling: " + dateToTravel);
+        log.debug("Traveling: $dateToTravel")
         _holder = new TimeHolder(time: dateToTravel)
         closure.call()
         _holder = null
-        log.debug("End time-travel");
+        log.debug("End time-travel")
     }
 
     static get(object) {
@@ -35,7 +35,7 @@ class TimeTravel {
 class TimeHolder {
     Date time
 
-    def Date get() {
+    Date get() {
         return time
     }
 }

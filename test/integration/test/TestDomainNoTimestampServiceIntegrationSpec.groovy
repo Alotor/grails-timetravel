@@ -1,10 +1,9 @@
 package test
 
 import grails.plugin.spock.IntegrationSpec
-
-import java.util.Calendar
-import org.grails.plugins.timetravel.TimeTravel
 import groovy.time.TimeCategory
+
+import org.grails.plugins.timetravel.TimeTravel
 
 @Mixin(TimeTravel)
 class TestDomainNoTimestampServiceIntegrationSpec extends IntegrationSpec {
