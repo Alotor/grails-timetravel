@@ -1,6 +1,8 @@
 Grails Time-Travel
 =================
 
+[![Build Status](https://drone.io/github.com/Alotor/grails-timetravel/status.png)](https://drone.io/github.com/Alotor/grails-timetravel/latest)
+
 Grails plugin to mock and test data as if created on a specific date or time.
 
 ## WARNING: Time-travel is dangerous
@@ -49,5 +51,6 @@ When you're ready to travel in time just select your date and make the jump:
     }
 ```
 
-# TODO
-* Repeat the closure code in several times or in a range of time
+Version info
+------------
+* 0.1 - 17/Nov/2013 - Initial version
