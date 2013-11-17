@@ -54,3 +54,4 @@ When you're ready to travel in time just select your date and make the jump:
 Version info
 ------------
 * 0.1 - 17/Nov/2013 - Initial version
+* 0.2 - 17/Nov/2013 - Fixed problem with excludes

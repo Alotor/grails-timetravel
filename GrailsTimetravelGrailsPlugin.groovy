@@ -5,7 +5,7 @@ import org.codehaus.groovy.grails.orm.hibernate.support.TimetravelClosureEventLi
 import org.grails.plugins.timetravel.TimeTravel
 
 class GrailsTimetravelGrailsPlugin {
-    def version = "0.1"
+    def version = "0.2"
     def grailsVersion = "2.0 > *"
     def pluginExcludes = [
             "grails-app/domain/**",
