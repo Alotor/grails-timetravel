@@ -11,104 +11,77 @@ class GrailsTimetravelGrailsPlugin {
     // the plugin version
     def version = "0.1"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "2.1 > *"
+    def grailsVersion = "2.0 > *"
     // the other plugins this plugin depends on
     def dependsOn = [:]
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-        "grails-app/views/error.gsp"
+            "grails-app/views/error.gsp",
+            "grails-app/domain/**",
+            "grails-app/controllers/**",
+            "grails-app/taglib/**",
+            "grails-app/i18n/**",
+            "web-app/**"
     ]
 
-    // TODO Fill in these fields
-    def title = "Grails Timetravel Plugin" // Headline display name of the plugin
-    def author = "Your name"
-    def authorEmail = ""
+    def title = "Grails Timetravel Plugin"
+    def author = "Alonso Torres"
+    def authorEmail = "alonso.javier.torres@gmail.com"
     def description = '''\
-Brief summary/description of the plugin.
+This plugin provides utility methods to set custom dateCreated and lastUpdated timpestamped dates
+on your domain objects.
 '''
 
     // URL to the plugin's documentation
-    def documentation = "http://grails.org/plugin/grails-timetravel"
+    def documentation = "https://github.com/Alotor/grails-timetravel/blob/master/README.md"
 
-    // Extra (optional) plugin metadata
-
-    // License: one of 'APACHE', 'GPL2', 'GPL3'
-//    def license = "APACHE"
+    def license = "APACHE"
 
     // Details of company behind the plugin (if there is one)
-//    def organization = [ name: "My Company", url: "http://www.my-company.com/" ]
-
-    // Any additional developers beyond the author specified above.
-//    def developers = [ [ name: "Joe Bloggs", email: "joe@bloggs.net" ]]
+    def organization = [ name: "Kaleidos", url: "http://kaleidos.net" ]
 
     // Location of the plugin's issue tracker.
-//    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPMYPLUGIN" ]
+    def issueManagement = [ system: "GITHUB", url: "https://github.com/Alotor/grails-timetravel/issues" ]
 
     // Online location of the plugin's browseable source code.
-//    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
-
-    def doWithWebDescriptor = { xml ->
-        // TODO Implement additions to web.xml (optional), this event occurs before
-    }
-
-    def doWithSpring = {
-        // TODO Implement runtime spring config (optional)
-    }
-
-    def doWithDynamicMethods = { ctx ->
-        // TODO Implement registering dynamic methods to classes (optional)
-    }
+    def scm = [ url: "https://github.com/Alotor/grails-timetravel.git" ]
 
     def doWithApplicationContext = { applicationContext ->
         // Only on test environment
         if (Environment.getCurrent() == Environment.TEST) {
             def grailsApplication = applicationContext.getBean("grailsApplication")
+            def eventTriggeringInterceptor = applicationContext.getBean("eventTriggeringInterceptor")
+            def datastore = eventTriggeringInterceptor.datastores.values().iterator().next()
 
+            // For each domain instance add time-travel functionality
             grailsApplication.domainClasses.each {
                 def domainClazz = it.clazz
 
-                ClosureEventTriggeringInterceptor eventTriggeringInterceptor = applicationContext.getBean("eventTriggeringInterceptor")
-                HibernateDatastore datastore = eventTriggeringInterceptor.datastores.values().iterator().next()
-                EventTriggeringInterceptor interceptor = datastore.getEventTriggeringInterceptor()
-
+                def interceptor = datastore.getEventTriggeringInterceptor()
                 interceptor.eventListeners.clear()
                 def key = new SoftKey(domainClazz)
                 def eventListener = new TimetravelClosureEventListener(domainClazz, true, [])
                 interceptor.eventListeners.put(key, eventListener)
 
-                def saveMethod1 = it.metaClass.pickMethod("save", [] as Class[])
+                // Intercepts save methods
+                def saveEmptyMethod = it.metaClass.pickMethod("save", [] as Class[])
                 it.metaClass.save = {
                     TimeTravel.add(delegate)
-                    saveMethod1.invoke(delegate, [] as Object[])
+                    saveEmptyMethod.invoke(delegate, [] as Object[])
                 }
 
-                def saveMethod2 = it.metaClass.pickMethod("save", [Map] as Class[])
+                def saveMapMethod = it.metaClass.pickMethod("save", [Map] as Class[])
                 it.metaClass.save = { Map params ->
                     TimeTravel.add(delegate)
-                    saveMethod2.invoke(delegate, [params] as Object[])
+                    saveMapMethod.invoke(delegate, [params] as Object[])
                 }
 
-                def saveMethod3 = it.metaClass.pickMethod("save", [Boolean] as Class[])
+                def saveBoolMethod = it.metaClass.pickMethod("save", [Boolean] as Class[])
                 it.metaClass.save = { Boolean params ->
                     TimeTravel.add(delegate)
-                    saveMethod3.invoke(delegate, [params] as Object[])
+                    saveBoolMethod.invoke(delegate, [params] as Object[])
                 }
             }
         }
-    }
-
-    def onChange = { event ->
-        // TODO Implement code that is executed when any artefact that this plugin is
-        // watching is modified and reloaded. The event contains: event.source,
-        // event.application, event.manager, event.ctx, and event.plugin.
-    }
-
-    def onConfigChange = { event ->
-        // TODO Implement code that is executed when the project configuration changes.
-        // The event is the same as for 'onChange'.
-    }
-
-    def onShutdown = { event ->
-        // TODO Implement code that is executed when the application shuts down (optional)
     }
 }
