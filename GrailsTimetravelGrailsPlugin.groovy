@@ -18,7 +18,7 @@ class GrailsTimetravelGrailsPlugin {
     def title = "Grails Timetravel Plugin"
     def author = "Alonso Torres"
     def authorEmail = "alonso.javier.torres@gmail.com"
-    def description = 'Provides utility methods to set custom dateCreated and lastUpdated timpestamped dates on your domain objects'''
+    def description = 'Provides utility methods to set custom dateCreated and lastUpdated timpestamped dates on your domain objects'
     def documentation = "https://github.com/Alotor/grails-timetravel/blob/master/README.md"
 
     def license = "APACHE"
