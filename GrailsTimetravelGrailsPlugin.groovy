@@ -10,8 +10,12 @@ class GrailsTimetravelGrailsPlugin {
     def pluginExcludes = [
             "grails-app/domain/**",
             "grails-app/controllers/**",
+            "grails-app/services/**",
+            "grails-app/utils/**",
+            "grails-app/views/**",
             "grails-app/taglib/**",
             "grails-app/i18n/**",
+            "test/**",
             "web-app/**"
     ]
 
