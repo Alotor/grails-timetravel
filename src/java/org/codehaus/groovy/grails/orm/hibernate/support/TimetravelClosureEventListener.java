@@ -10,10 +10,10 @@ import groovy.lang.MetaProperty;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Date;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
@@ -24,33 +24,33 @@ import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsDomainBinder;
 import org.codehaus.groovy.grails.orm.hibernate.cfg.Mapping;
 import org.codehaus.groovy.grails.orm.hibernate.metaclass.AbstractDynamicPersistentMethod;
 import org.codehaus.groovy.grails.orm.hibernate.metaclass.AbstractSavePersistentMethod;
-import org.codehaus.groovy.grails.orm.hibernate.metaclass.BeforeValidateHelper;
 import org.codehaus.groovy.grails.orm.hibernate.metaclass.ValidatePersistentMethod;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
-import org.grails.datastore.mapping.engine.event.ValidationEvent;
+import org.grails.plugins.timetravel.TimeTravel;
 import org.hibernate.EntityMode;
 import org.hibernate.FlushMode;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.event.*;
+import org.hibernate.event.AbstractEvent;
+import org.hibernate.event.PreInsertEvent;
+import org.hibernate.event.PreUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.validation.Errors;
-
-import org.grails.plugins.timetravel.TimeTravel;
 
 // http://grepcode.com/file/repo1.maven.org/maven2/org.grails/grails-hibernate/2.1.0.RC1/org/codehaus/groovy/grails/orm/hibernate/EventTriggeringInterceptor.java#EventTriggeringInterceptor.findEventListener%28java.lang.Object%29
 // http://grepcode.com/file/repo1.maven.org/maven2/org.grails/grails-hibernate/2.1.0.RC1/org/codehaus/groovy/grails/orm/hibernate/support/ClosureEventListener.java#ClosureEventListener
 // https://github.com/grails/grails-core/tree/2.1.x/grails-hibernate/src/main/groovy/org/codehaus/groovy/grails/orm/hibernate
 public class TimetravelClosureEventListener extends ClosureEventListener {
+
+    private static final long serialVersionUID = 1;
+
     private static final Log log = LogFactory.getLog(TimetravelClosureEventListener.class);
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[] {};
 
     EventTriggerCaller beforeInsertCaller;
     EventTriggerCaller preUpdateEventListener;
 
-    private BeforeValidateHelper beforeValidateHelper = new BeforeValidateHelper();
     boolean shouldTimestamp = false;
     boolean failOnErrorEnabled = false;
 
@@ -83,13 +83,12 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
         }
 
         validateParams = new HashMap();
-        validateParams.put(ValidatePersistentMethod.ARGUMENT_DEEP_VALIDATE, Boolean.FALSE);
+        validateParams.put(ValidatePersistentMethod.ARGUMENT_DEEP_VALIDATE, false);
 
         errorsProperty = domainMetaClass.getMetaProperty(AbstractDynamicPersistentMethod.ERRORS_PROPERTY);
 
         validateMethod = domainMetaClass.getMetaMethod(ValidatePersistentMethod.METHOD_SIGNATURE, new Object[] { Map.class });
     }
-
 
     @Override
     public boolean onPreUpdate(final PreUpdateEvent event) {

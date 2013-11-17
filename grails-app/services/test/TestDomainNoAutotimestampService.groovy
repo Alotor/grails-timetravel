@@ -1,11 +1,9 @@
 package test
 
 class TestDomainNoAutotimestampService {
-    static transactional = true
 
     public insertDomainObject(String name, Integer value) {
-        def domain = new TestDomainNoAutotimestamp(name: name, value: value)
-        domain.save()
+        new TestDomainNoAutotimestamp(name: name, value: value).save()
     }
 
     public updateDomainObject(String name, Integer value) {
