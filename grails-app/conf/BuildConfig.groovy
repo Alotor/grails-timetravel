@@ -15,7 +15,9 @@ grails.project.dependency.resolution = {
     }
 
     plugins {
-        runtime ":hibernate:$grailsVersion"
+        runtime (":hibernate:$grailsVersion") {
+            export = false
+        }
 
         test (":spock:0.7", ":code-coverage:1.2.6") {
             export = false
