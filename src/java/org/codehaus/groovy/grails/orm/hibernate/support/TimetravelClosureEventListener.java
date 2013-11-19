@@ -71,6 +71,7 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
         if (dateCreatedProperty != null || lastUpdatedProperty != null) {
             Mapping m = GrailsDomainBinder.getMapping(domainClazz);
             shouldTimestamp = m == null || m.isAutoTimestamp();
+            log.debug("" + domainClazz + ": " + shouldTimestamp);
         }
 
         beforeInsertCaller = buildCaller(domainClazz, ClosureEventTriggeringInterceptor.BEFORE_INSERT_EVENT);
@@ -92,6 +93,7 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
 
     @Override
     public boolean onPreUpdate(final PreUpdateEvent event) {
+        log.debug( "%% PRE UPDATE" );
         return doWithManualSession(event, new Closure<Boolean>(this) {
             @Override
             public Boolean call() {
@@ -104,8 +106,9 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
                 if (lastUpdatedProperty != null && shouldTimestamp) {
                     long time = System.currentTimeMillis();
 
-                    if (TimeTravel.get(entity) != null) {
-                        time = ((Date)TimeTravel.get(entity)).getTime();
+                    if (TimeTravel.getUpdated(entity) != null) {
+                        time = ((Date)TimeTravel.getUpdated(entity)).getTime();
+                        log.debug("Updated time: " + TimeTravel.getUpdated(entity));
                     }
 
                     Object now = DefaultGroovyMethods.newInstance(lastUpdatedProperty.getType(), new Object[] { time });
@@ -129,10 +132,13 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
 
     @Override
     public boolean onPreInsert(final PreInsertEvent event) {
+        log.debug( "%% PRE INSERT " + event.getEntity() + " (" + shouldTimestamp + ")");
+
         return doWithManualSession(event, new Closure<Boolean>(this) {
             @Override
             public Boolean call() {
                 Object entity = event.getEntity();
+
                 boolean synchronizeState = false;
                 if (beforeInsertCaller != null) {
                     if (beforeInsertCaller.call(entity)) {
@@ -141,18 +147,24 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
                     synchronizeState = true;
                 }
                 if (shouldTimestamp) {
-                    long time = System.currentTimeMillis();
-                    if (TimeTravel.get(entity) != null) {
-                        time = ((Date)TimeTravel.get(entity)).getTime();
+                    long updateTime = System.currentTimeMillis();
+                    long newTime = System.currentTimeMillis();
+
+                    log.debug(">> PRE-INSERT: " + entity);
+                    if (TimeTravel.getNew(entity) != null) {
+                        updateTime = ((Date)TimeTravel.getNew(entity)).getTime();
+                    }
+                    if (TimeTravel.getUpdated(entity) != null) {
+                        newTime = ((Date)TimeTravel.getUpdated(entity)).getTime();
                     }
 
                     if (dateCreatedProperty != null) {
-                        Object now = DefaultGroovyMethods.newInstance(dateCreatedProperty.getType(), new Object[] { time });
+                        Object now = DefaultGroovyMethods.newInstance(dateCreatedProperty.getType(), new Object[] { newTime });
                         dateCreatedProperty.setProperty(entity, now);
                         synchronizeState = true;
                     }
                     if (lastUpdatedProperty != null) {
-                        Object now = DefaultGroovyMethods.newInstance(lastUpdatedProperty.getType(), new Object[] { time });
+                        Object now = DefaultGroovyMethods.newInstance(lastUpdatedProperty.getType(), new Object[] { updateTime });
                         lastUpdatedProperty.setProperty(entity, now);
                         synchronizeState = true;
                     }

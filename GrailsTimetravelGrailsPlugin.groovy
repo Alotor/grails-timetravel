@@ -52,19 +52,28 @@ class GrailsTimetravelGrailsPlugin {
             // Intercepts save methods
             def saveEmptyMethod = it.metaClass.pickMethod("save", [] as Class[])
             it.metaClass.save = {
-                TimeTravel.add(delegate)
+                TimeTravel.addUpdated(delegate)
+                if (!delegate.id) {
+                    TimeTravel.addNew(delegate)
+                }
                 saveEmptyMethod.invoke(delegate, [] as Object[])
             }
 
             def saveMapMethod = it.metaClass.pickMethod("save", [Map] as Class[])
             it.metaClass.save = { Map params ->
-                TimeTravel.add(delegate)
+                TimeTravel.addUpdated(delegate)
+                if (!delegate.id) {
+                    TimeTravel.addNew(delegate)
+                }
                 saveMapMethod.invoke(delegate, [params] as Object[])
             }
 
             def saveBoolMethod = it.metaClass.pickMethod("save", [Boolean] as Class[])
             it.metaClass.save = { Boolean params ->
-                TimeTravel.add(delegate)
+                TimeTravel.addUpdated(delegate)
+                if (!delegate.id) {
+                    TimeTravel.addNew(delegate)
+                }
                 saveBoolMethod.invoke(delegate, [params] as Object[])
             }
         }
