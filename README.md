@@ -18,6 +18,8 @@ class TestDomainServiceIntegrationSpec extends IntegrationSpec {
     def setupSpec() {
         Integer.mixin(groovy.time.TimeCategory)
     }
+    ...
+}
 ```
 
 Then you have to add the TimeTravel mixin to add the time manipulation functions.
@@ -37,21 +39,22 @@ with the creationDate/lastUpdated as the specified time.
 When you're ready to travel in time just select your date and make the jump:
 
 ```groovy
-    void 'My awesome test'() {
-        setup:
-            travel(10.years.ago) {
-                testDomainService.insertDomainObject(name, value)
-            }
+void 'My awesome test'() {
+    setup:
+        travel(10.years.ago) {
+            testDomainService.insertDomainObject(name, value)
+        }
 
-        when:
-            ...
+    when:
+        ...
 
-        then:
-            ....
-    }
+    then:
+        ....
+}
 ```
 
 Version info
 ------------
 * 0.1 - 17/Nov/2013 - Initial version
-* 0.2 - 17/Nov/2013 - Fixed problem with excludes
+* 0.2 - 17/Nov/2013 - Fixed problem in plugin descriptor
+* 0.3 - 20/Nov/2013 - Solved problems with flush and listener collision
