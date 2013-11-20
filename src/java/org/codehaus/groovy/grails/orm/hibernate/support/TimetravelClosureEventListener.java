@@ -151,11 +151,11 @@ public class TimetravelClosureEventListener extends ClosureEventListener {
                     long newTime = System.currentTimeMillis();
 
                     log.debug(">> PRE-INSERT: " + entity);
-                    if (TimeTravel.getNew(entity) != null) {
-                        updateTime = ((Date)TimeTravel.getNew(entity)).getTime();
-                    }
                     if (TimeTravel.getUpdated(entity) != null) {
-                        newTime = ((Date)TimeTravel.getUpdated(entity)).getTime();
+                        updateTime = ((Date)TimeTravel.getUpdated(entity)).getTime();
+                    }
+                    if (TimeTravel.getNew(entity) != null) {
+                        newTime = ((Date)TimeTravel.getNew(entity)).getTime();
                     }
 
                     if (dateCreatedProperty != null) {

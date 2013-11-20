@@ -43,12 +43,6 @@ class GrailsTimetravelGrailsPlugin {
         application.domainClasses.each {
             def domainClazz = it.clazz
 
-            def interceptor = datastore.getEventTriggeringInterceptor()
-            interceptor.eventListeners.clear()
-            def key = new SoftKey(domainClazz)
-            def eventListener = new TimetravelClosureEventListener(domainClazz, true, [])
-            interceptor.eventListeners.put(key, eventListener)
-
             // Intercepts save methods
             def saveEmptyMethod = it.metaClass.pickMethod("save", [] as Class[])
             it.metaClass.save = {
