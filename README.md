@@ -53,6 +53,46 @@ void 'My awesome test'() {
 }
 ```
 
+# Jump Forward / Jump Backward
+Once you're inside the travel context you can move the internal time clock advancing some time with
+the jumpForward/jumpBackward method.
+
+```groovy
+void 'My awesome test'() {
+    setup:
+        travel(10.years.ago) {
+            10.times {
+                jumpForward 1.year
+                testDomainService.insertDomainObject(name, value)
+            }
+        }
+
+    when:
+        ...
+
+    then:
+        ....
+}
+```
+
+```groovy
+void 'My awesome test'() {
+    setup:
+        travel(10.years.ago) {
+            12.times {
+                jumpBackward 1.month
+                testDomainService.insertDomainObject(name, value)
+            }
+        }
+
+    when:
+        ...
+
+    then:
+        ....
+}
+```
+
 Version info
 ------------
 * 0.1 - 17/Nov/2013 - Initial version
