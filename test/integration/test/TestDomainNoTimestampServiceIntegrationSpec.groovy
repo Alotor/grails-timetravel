@@ -3,9 +3,8 @@ package test
 import grails.plugin.spock.IntegrationSpec
 import groovy.time.TimeCategory
 
-import org.grails.plugins.timetravel.TimeTravel
+import static org.grails.plugins.timetravel.TimeTravel.travel
 
-@Mixin(TimeTravel)
 class TestDomainNoTimestampServiceIntegrationSpec extends IntegrationSpec {
     def testDomainNoAutotimestampService
 

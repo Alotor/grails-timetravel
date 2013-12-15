@@ -18,7 +18,7 @@ class TimeTravel {
 
     public static TimeHolder _holder
 
-    def travel(Date dateToTravel, Closure closure) {
+    static travel(Date dateToTravel, Closure closure) {
         if (Environment.getCurrent() != Environment.TEST) {
             throw new Exception("You can only use time-travel on a testing environment")
         }
@@ -30,6 +30,39 @@ class TimeTravel {
         } finally {
             _holder = null
             log.debug("End time-travel")
+        }
+    }
+
+    static jumpForward(def interval) {
+        if (Environment.getCurrent() != Environment.TEST) {
+            throw new Exception("You can only use time-travel on a testing environment")
+        }
+
+        if (!_holder) {
+            throw new Exception("You cannot jump if you're not inside a travel")
+        }
+
+        use(groovy.time.TimeCategory){
+            log.debug ">> jumpForward $interval"
+            def dateToTravel = _holder.time + interval
+            log.debug("Traveling: $dateToTravel")
+            _holder = new TimeHolder(time: dateToTravel)
+        }
+    }
+
+    static jumpBackward(def interval) {
+        if (Environment.getCurrent() != Environment.TEST) {
+            throw new Exception("You can only use time-travel on a testing environment")
+        }
+
+        if (!_holder) {
+            throw new Exception("You cannot jump if you're not inside a travel")
+        }
+
+        use(groovy.time.TimeCategory){
+            def dateToTravel = _holder.time - interval
+            log.debug("Traveling: $dateToTravel")
+            _holder = new TimeHolder(time: dateToTravel)
         }
     }
 

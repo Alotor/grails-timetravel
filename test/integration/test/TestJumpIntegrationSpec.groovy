@@ -3,42 +3,22 @@ package test
 import grails.plugin.spock.IntegrationSpec
 import groovy.time.TimeCategory
 
-import static org.grails.plugins.timetravel.TimeTravel.travel
+import static org.grails.plugins.timetravel.TimeTravel.*
 
-class TestDomainServiceIntegrationSpec extends IntegrationSpec {
+class TestJumpIntegrationSpec extends IntegrationSpec {
     def testDomainService
 
     def setupSpec() {
         Integer.mixin(TimeCategory)
     }
 
-    void 'Test save domain object'() {
+    void 'Test save domain object and then jump'() {
         when:
-            travel(10.years.ago) {
-                testDomainService.insertDomainObject(name, value)
-            }
-            def result = TestDomain.findByName(name)
-
-        then:
-            result != null
-            result.dateCreated != null
-            result.dateCreated.year == 10.years.ago.year
-            result.lastUpdated != null
-            result.lastUpdated.year == 10.years.ago.year
-
-        where:
-            name = "test"
-            value = 10
-    }
-
-    void 'Test update domain object'() {
-        setup:
-            travel(10.years.ago) {
+            travel(10.year.ago) {
                 testDomainService.insertDomainObject(name, value1)
-            }
-
-        when:
-            travel(5.years.ago) {
+                println ">> jumping"
+                jumpForward 1.year
+                println ">> jumping end"
                 testDomainService.updateDomainObject(name, value2)
             }
             def result = TestDomain.findByName(name)
@@ -48,7 +28,29 @@ class TestDomainServiceIntegrationSpec extends IntegrationSpec {
             result.dateCreated != null
             result.dateCreated.year == 10.years.ago.year
             result.lastUpdated != null
-            result.lastUpdated.year == 5.years.ago.year
+            result.lastUpdated.year == 9.years.ago.year
+
+        where:
+            name = "test"
+            value1 = 10
+            value2 = 5
+    }
+
+    void 'Test save domain object and then jump'() {
+        when:
+            travel(10.year.ago) {
+                testDomainService.insertDomainObject(name, value1)
+                jumpBackward 1.year
+                testDomainService.updateDomainObject(name, value2)
+            }
+            def result = TestDomain.findByName(name)
+
+        then:
+            result != null
+            result.dateCreated != null
+            result.dateCreated.year == 10.years.ago.year
+            result.lastUpdated != null
+            result.lastUpdated.year == 11.years.ago.year
 
         where:
             name = "test"
